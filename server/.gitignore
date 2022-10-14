@@ -1,4 +1,2 @@
 /node_modules/
-/prod/
-.env
-config.ts
+config.env
