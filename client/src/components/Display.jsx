@@ -19,12 +19,12 @@ const Display = () => {
         }
       
         getTrains();
-        
+
         return;
       }, [trains.length]);
 
     return (
-        <p>Hey there</p>
+        <p><strong>SEPTA Delay History</strong></p>
     )
 };
 

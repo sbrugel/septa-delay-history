@@ -5,9 +5,6 @@ const trainRoutes = express.Router();
 // connect to database
 const dbo = require("../db/conn");
  
-// convert id string to ObjectID
-const ObjectId = require("mongodb").ObjectId;
- 
 // get all trains
 trainRoutes.route("/train").get(function (req, res) {
  let db_connect = dbo.getDb();
@@ -20,10 +17,10 @@ trainRoutes.route("/train").get(function (req, res) {
    });
 });
  
-// get a single train by ID
-trainRoutes.route("/train/:id").get(function (req, res) {
+// get a single train by its train number
+trainRoutes.route("/train/:s").get(function (req, res) {
  let db_connect = dbo.getDb();
- let myquery = { _id: ObjectId(req.params.id) };
+ let myquery = { service: req.params.s };
  db_connect
    .collection("delays")
    .findOne(myquery, function (err, result) {
