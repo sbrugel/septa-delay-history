@@ -14,8 +14,8 @@ async function main() {
     console.log('Preparing to track...');
     const job = new cron.CronJob('*/15 * * * *', () => fetchDelays(mongo));
     job.start();
-
     console.log('Now tracking');
+    
     fetchDelays(mongo);
 }
 
