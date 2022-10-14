@@ -13,7 +13,7 @@ module.exports = {
       // Verify we got a good "db" object
       if (db)
       {
-        _db = db.db("delays");
+        _db = db.db("delayDB");
         console.log("Successfully connected to MongoDB."); 
       }
       return callback(err);
