@@ -31,7 +31,8 @@ async function fetchDelays(mongo: Db) {
             recentDelays.push({
                 amount: train.late,
                 datestring: d,
-                date: d.toLocaleDateString("en-US")
+                date: d.toLocaleDateString("en-US"),
+                time: d.toLocaleTimeString()
             });
             if (recentDelays.length > 3000) {
                 recentDelays.shift();
