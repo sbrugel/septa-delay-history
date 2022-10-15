@@ -5,7 +5,10 @@ import { updateData } from "../store/inputSlice";
 
 const Display = () => {
   const [trains, setTrains] = useState([]);
+
   const [service, setService] = useState("");
+  const [intervalDays, setIntervalDays] = useState("");
+
   const [delayDisplay, setDelayDisplay] = useState("");
 
   const dispatch = useDispatch();
@@ -32,6 +35,11 @@ const Display = () => {
   }, [trains.length]);
 
   useEffect(() => {
+    if (data.intervalDays === '0') {
+      alert("Please select an interval")
+      return;
+    }
+
     async function getTrain() {
       const response = await fetch(`http://localhost:5000/train/${data.service}/`);
 
@@ -43,13 +51,41 @@ const Display = () => {
 
       const train = await response.json();
       if (!train) setDelayDisplay(``);
-      else setDelayDisplay(`Train ${train.service} was last seen running ${train.delays[1].amount > 0 ? `${train.delays[1].amount} minute${train.delays[1].amount !== 1 ? 's' : ''} late` : `on time`}`);
+      else {
+        let delaySum = 0;
+        let numDelays = train.delays.length;
+
+        for (let delay of train.delays) {
+          delaySum += delay.amount;
+        }
+
+        let intervalText = '';
+
+        switch (data.intervalDays) {
+          case '1':
+            intervalText = '24 hours';
+            break;
+          case '7':
+            intervalText = '7 days';
+            break;
+          case '30':
+            intervalText = '30 days';
+            break;
+          case '180':
+            intervalText = '180 days';
+            break;
+          default:
+            break;
+        }
+        
+        setDelayDisplay(`Train ${train.service} had an average delay of ${Math.round(delaySum / numDelays)} minutes over the past ${intervalText}.`);
+      }
     }
 
     getTrain();
 
     return;
-  }, [data.service])
+  }, [data.service, data.intervalDays])
 
   return (
     <div>
@@ -68,9 +104,10 @@ const Display = () => {
         />
         <br />
         <br />
+        <Form.Label>Interval </Form.Label>
         <Form.Select
           onChange={(e) => {
-            console.log(e.target.value);
+            setIntervalDays(e.target.value);
           }}
         >
           <option value="0">(Select)</option>
@@ -87,6 +124,7 @@ const Display = () => {
           dispatch(
             updateData({
               service: service,
+              intervalDays: intervalDays
             })
           );
         }}
