@@ -110,11 +110,11 @@ const Display = () => {
 
           if (delay.amount <= 5) punctualDelays++;
 
-          if (maxDelayAmt === -1 || delay.amount > maxDelayAmt) {
+          if (maxDelayAmt === -1 || delay.amount >= maxDelayAmt) {
             maxDelayAmt = delay.amount;
             maxDelay = delay;
           }
-          if (minDelayAmt === -1 || delay.amount < minDelayAmt) {
+          if (minDelayAmt === -1 || delay.amount <= minDelayAmt) {
             minDelayAmt = delay.amount;
             minDelay = delay;
           }
@@ -124,13 +124,15 @@ const Display = () => {
       }
 
       let medianDelay = 0;
-      if (train.delays.length % 2 !== 0) {
+      if (train.delays.length % 2 !== 0 && train.delays.length !== 1) {
         medianDelay =
           (train.delays[Math.floor(train.delays.length / 2)].amount +
             train.delays[Math.ceil(train.delays.length / 2)].amount) /
           2;
-      } else {
+      } else if (train.delays.length % 2 === 0) {
         medianDelay = train.delays[train.delays.length / 2].amount;
+      } else {
+        medianDelay = train.delays[0].amount;
       }
 
       if (!resultsFound) {
@@ -154,10 +156,10 @@ const Display = () => {
               {Math.round((punctualDelays / count) * 100)}%
             </p>
             <p>
-              Highest delay: {maxDelay.amount} minutes at {maxDelay.time}
+              Highest delay: {maxDelay.amount} minutes at {maxDelay.time} on {maxDelay.date}
             </p>
             <p>
-              Smallest delay: {minDelay.amount} minutes at {minDelay.time}
+              Smallest delay: {minDelay.amount} minutes at {minDelay.time} on {maxDelay.date}
             </p>
           </div>
         );
