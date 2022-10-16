@@ -44,7 +44,11 @@ const Display = () => {
 
   // if OK button pressed, display data
   useEffect(() => {
-    async function getTrain() {
+    /**
+     * Get all delay data for this train from a specified earliest date
+     * @param {*} date 
+     */
+    async function getTrain(date) {
       const response = await fetch(`http://localhost:5000/train/${data.service}/`);
 
       if (!response.ok) {
@@ -58,10 +62,6 @@ const Display = () => {
       else {
         let delaySum = 0;
         const numDelays = train.delays.length;
-
-        for (let delay of train.delays) {
-          delaySum += delay.amount;
-        }
 
         let intervalText = '';
 
@@ -81,12 +81,31 @@ const Display = () => {
           default:
             break;
         }
+
+        const d = new Date(); // get the current date
+        d.setDate(d.getDate() - data.intervalDays); // subtract days based on what we picked in dropdown (will only be any of 1 / 7 / 30 / 180 days here)
+
+        console.log('A week before today is' + d.toLocaleDateString("en-US"));
+        console.log(d > new Date(train.delays[0].datestring));
+        console.log(new Date(train.delays[0].datestring) > d);
+
+        for (let delay of train.delays) {
+          delaySum += delay.amount;
+        }
         
         setDelayDisplay(`Train ${train.service} had an average delay of ${Math.round(delaySum / numDelays)} minutes over the past ${intervalText}.`);
       }
     }
 
-    getTrain();
+    /**
+     * 
+     * @param {*} date 
+     */
+    async function getTrainOnDay(date) {
+      // TODO: implement this
+    }
+
+    getTrain(0);
 
     return;
   }, [data.service, data.intervalDays])
@@ -94,7 +113,7 @@ const Display = () => {
   const showCalendar = () => {
     return (
       <Calendar onChange={(value) => {
-        console.log(value); // returns a Date object?
+        setDate(value.toLocaleDateString("en-US"));
       }} />
     )
   }
