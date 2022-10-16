@@ -142,13 +142,13 @@ const Display = () => {
       } else {
         setDelayDisplay(
           <div>
-            <p>
+            <p><strong>
               Train {train.service} had an average delay of{" "}
               {Math.round((delaySum / count) * 100) / 100} minutes{" "}
               {onlySpecified ? `on ${date}` : `over the past ${intervalText}`},
               and a median delay of {Math.round(medianDelay * 100) / 100}{" "}
               minutes.
-            </p>
+            </strong></p>
             <p>
               This train's punctuality (5 or less minutes late) is{" "}
               {Math.round((punctualDelays / count) * 100)}%

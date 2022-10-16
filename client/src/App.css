@@ -1,5 +1,11 @@
 .App {
   text-align: center;
+  background-color: #ffffff;
+  height: 100vh; /* Magic here */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.8;
 }
 
 .App-logo {
