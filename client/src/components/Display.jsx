@@ -46,10 +46,11 @@ const Display = () => {
   // if OK button pressed, display data
   useEffect(() => {
     /**
-     * Get all delay data for this train from a specified earliest date
-     * @param {*} date The earliest date to use data from
+     * Get all delay data for this train, either on an interval or specific date
+     * @param {Date} date If onlySpecified is true, the date to pick data from. Else, the date to START picking data from
+     * @param {boolean} onlySpecified See above
      */
-    async function getTrain(date) {
+    async function getTrain(date, onlySpecified) {
       if (!data.service) return; // function executed on page load
 
       const response = await fetch(
@@ -63,19 +64,22 @@ const Display = () => {
       }
 
       const train = await response.json();
-      if (!train)
+      if (!train) {
         setDelayDisplay(`No data was found (no data for this train).`);
-      else {
-        let resultsFound = false;
-        let delaySum = 0;
-        let count = 0;
+        return;
+      }
+      let resultsFound = false;
+      let delaySum = 0;
+      let punctualDelays = 0; // 5 or less minutes late
+      let count = 0;
 
-        let intervalText = "";
+      let intervalText = "";
 
-        let maxDelayAmt = -1;
-        let minDelayAmt = -1;
-        let maxDelay, minDelay;
+      let maxDelayAmt = -1;
+      let minDelayAmt = -1;
+      let maxDelay, minDelay;
 
+      if (!onlySpecified) {
         switch (data.intervalDays) {
           case "1":
             intervalText = "24 hours";
@@ -92,121 +96,81 @@ const Display = () => {
           default:
             break;
         }
+      }
 
-        for (let delay of train.delays) {
-          if (new Date(delay.datestring) >= date) {
-            resultsFound = true;
-            delaySum += delay.amount;
-            count++;
+      for (const delay of train.delays) {
+        if (
+          (new Date(delay.datestring) >= date && !onlySpecified) ||
+          (new Date(delay.datestring).toLocaleDateString("en-US") === date &&
+            onlySpecified)
+        ) {
+          resultsFound = true;
+          delaySum += delay.amount;
+          count++;
 
-            if (maxDelayAmt === -1 || (delay.amount > maxDelayAmt)) {
-              maxDelayAmt = delay.amount;
-              maxDelay = delay;
-            }
-            if (minDelayAmt === -1 || (delay.amount < minDelayAmt)) {
-              minDelayAmt = delay.amount;
-              minDelay = delay;
-            }
+          if (delay.amount <= 5) punctualDelays++;
+
+          if (maxDelayAmt === -1 || delay.amount > maxDelayAmt) {
+            maxDelayAmt = delay.amount;
+            maxDelay = delay;
           }
-        }
-
-        if (!resultsFound) {
-          setDelayDisplay(
-            <div>
-              <p>No data was found (no data over selected interval).</p>
-            </div>
-          )
+          if (minDelayAmt === -1 || delay.amount < minDelayAmt) {
+            minDelayAmt = delay.amount;
+            minDelay = delay;
+          }
         } else {
-          setDelayDisplay(
-            <div>
-              <p>Train {train.service} had an average delay of {Math.round(
-                delaySum / count)} minutes over the past {intervalText}.</p>
-              <p>Highest delay attained on {maxDelay.date}: {maxDelay.amount} minutes at {maxDelay.time}</p>
-              <p>Smallest delay attained on {minDelay.date}: {minDelay.amount} minutes at {minDelay.time}</p>
-            </div>
-          )
+          if (onlySpecified && resultsFound) break;
         }
+      }
+
+      let medianDelay = 0;
+      if (train.delays.length % 2 !== 0) {
+        medianDelay =
+          (train.delays[Math.floor(train.delays.length / 2)].amount +
+            train.delays[Math.ceil(train.delays.length / 2)].amount) /
+          2;
+      } else {
+        medianDelay = train.delays[train.delays.length / 2].amount;
+      }
+
+      if (!resultsFound) {
+        setDelayDisplay(
+          <div>
+            <p>No data was found (no data for selected day).</p>
+          </div>
+        );
+      } else {
+        setDelayDisplay(
+          <div>
+            <p>
+              Train {train.service} had an average delay of{" "}
+              {Math.round((delaySum / count) * 100) / 100} minutes{" "}
+              {onlySpecified ? `on ${date}` : `over the past ${intervalText}`},
+              and a median delay of {Math.round(medianDelay * 100) / 100}{" "}
+              minutes.
+            </p>
+            <p>
+              This train's punctuality (5 or less minutes late) is{" "}
+              {Math.round((punctualDelays / count) * 100)}%
+            </p>
+            <p>
+              Highest delay: {maxDelay.amount} minutes at {maxDelay.time}
+            </p>
+            <p>
+              Smallest delay: {minDelay.amount} minutes at {minDelay.time}
+            </p>
+          </div>
+        );
       }
     }
 
-    /**
-     *
-     * @param {*} date
-     */
-    async function getTrainOnDay(date) {
-      if (!data.service) return; // function executed on page load
-
-      const response = await fetch(
-        `http://localhost:5000/train/${data.service}/`
-      );
-
-      if (!response.ok) {
-        const message = `An error occurred: ${response.statusText}`;
-        window.alert(message);
-        return;
-      }
-
-      const train = await response.json();
-      if (!train)
-        setDelayDisplay(`No data was found (no data for this train).`);
-      else {
-        let resultsFound = false;
-        let delaySum = 0;
-        let count = 0;
-
-        let maxDelayAmt = -1;
-        let minDelayAmt = -1;
-        let maxDelay, minDelay;
-
-        for (let delay of train.delays) {
-          if (new Date(delay.datestring).toLocaleDateString("en-US") === date) {
-            resultsFound = true;
-            delaySum += delay.amount;
-            count++;
-
-            if (maxDelayAmt === -1 || (delay.amount > maxDelayAmt)) {
-              maxDelayAmt = delay.amount;
-              maxDelay = delay;
-            }
-            if (minDelayAmt === -1 || (delay.amount < minDelayAmt)) {
-              minDelayAmt = delay.amount;
-              minDelay = delay;
-            }
-          } else {
-            if (resultsFound) {
-              break;
-            }
-          }
-        }
-
-        if (!resultsFound) {
-          setDelayDisplay(
-            <div>
-              <p>No data was found (no data for selected day).</p>
-            </div>
-          )
-        } else {
-          setDelayDisplay(
-            <div>
-              <p>Train {train.service} had an average delay of {Math.round(
-                delaySum / count)} minutes on {date}.</p>
-              <p>Highest delay: {maxDelay.amount} minutes at {maxDelay.time}</p>
-              <p>Smallest delay: {minDelay.amount} minutes at {minDelay.time}</p>
-            </div>
-          )
-        }
-      }
-    }
-
-    if (data.intervalDays === 'D') {
-      getTrainOnDay(data.date);
+    if (data.intervalDays === "D") {
+      getTrain(data.date, true);
     } else {
       const d = new Date();
       d.setDate(d.getDate() - data.intervalDays);
-      getTrain(d);
+      getTrain(d, false);
     }
-
-    return;
   }, [data.service, data.intervalDays, data.date]);
 
   const showCalendar = () => {
@@ -269,7 +233,7 @@ const Display = () => {
             updateData({
               service: service,
               intervalDays: intervalDays,
-              date: date
+              date: date,
             })
           );
         }}
@@ -277,7 +241,7 @@ const Display = () => {
       >
         Submit
       </Button>
-        <br />
+      <br />
       {delayDisplay}
     </div>
   );
