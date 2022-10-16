@@ -68,7 +68,7 @@ const Display = () => {
       else {
         let resultsFound = false;
         let delaySum = 0;
-        const numDelays = train.delays.length;
+        let count = 0;
 
         let intervalText = "";
 
@@ -93,13 +93,14 @@ const Display = () => {
           if (new Date(delay.datestring) >= date) {
             resultsFound = true;
             delaySum += delay.amount;
+            count++;
           }
         }
 
         setDelayDisplay(
           resultsFound
             ? `Train ${train.service} had an average delay of ${Math.round(
-                delaySum / numDelays
+                delaySum / count
               )} minutes over the past ${intervalText}.`
             : `No data was found (no data over selected interval).`
         );
@@ -129,12 +130,13 @@ const Display = () => {
       else {
         let resultsFound = false;
         let delaySum = 0;
-        const numDelays = train.delays.length;
+        let count = 0;
 
         for (let delay of train.delays) {
           if (new Date(delay.datestring).toLocaleDateString("en-US") === date) {
             resultsFound = true;
             delaySum += delay.amount;
+            count++;
           } else {
             if (resultsFound) {
               break;
@@ -145,7 +147,7 @@ const Display = () => {
         setDelayDisplay(
           resultsFound
             ? `Train ${train.service} had an average delay of ${Math.round(
-                delaySum / numDelays
+                delaySum / count
               )} minutes on ${date}.`
             : `No data was found (no data for selected day).`
         );
