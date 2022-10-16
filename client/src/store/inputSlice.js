@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 export const initialState = {
     service: '',
     intervalDays: '',
+    date: ''
 }
 
 export const inputSlice = createSlice({
@@ -10,9 +11,10 @@ export const inputSlice = createSlice({
 	initialState,
 	reducers: {
         updateData: (state, action) => {
-            const { service, intervalDays } = action.payload;
+            const { service, intervalDays, date } = action.payload;
             state.service = service;
             state.intervalDays = intervalDays;
+            state.date = date;
         },
 	},
 });
