@@ -3,18 +3,26 @@ import { useSelector, useDispatch } from "react-redux";
 import { Form, Button } from "react-bootstrap";
 import { updateData } from "../store/inputSlice";
 
+import { Calendar } from "react-calendar";
+import 'react-calendar/dist/Calendar.css';
+
 const Display = () => {
+  // trains from database
   const [trains, setTrains] = useState([]);
 
+  // user selections
   const [service, setService] = useState("");
   const [intervalDays, setIntervalDays] = useState("");
+  const [date, setDate] = useState(null);
 
+  // what to show
   const [delayDisplay, setDelayDisplay] = useState("");
 
+  // temp store of user filled fields
   const dispatch = useDispatch();
   const data = useSelector((state) => state.input);
 
-  // fetch Trains from our DB
+  // fetch trains from our DB
   useEffect(() => {
     async function getTrains() {
       const response = await fetch(`http://localhost:5000/train/`);
@@ -34,12 +42,8 @@ const Display = () => {
     return;
   }, [trains.length]);
 
+  // if OK button pressed, display data
   useEffect(() => {
-    if (data.intervalDays === '0') {
-      alert("Please select an interval")
-      return;
-    }
-
     async function getTrain() {
       const response = await fetch(`http://localhost:5000/train/${data.service}/`);
 
@@ -53,7 +57,7 @@ const Display = () => {
       if (!train) setDelayDisplay(``);
       else {
         let delaySum = 0;
-        let numDelays = train.delays.length;
+        const numDelays = train.delays.length;
 
         for (let delay of train.delays) {
           delaySum += delay.amount;
@@ -87,6 +91,14 @@ const Display = () => {
     return;
   }, [data.service, data.intervalDays])
 
+  const showCalendar = () => {
+    return (
+      <Calendar onChange={(value) => {
+        console.log(value); // returns a Date object?
+      }} />
+    )
+  }
+
   return (
     <div>
       <p>
@@ -111,13 +123,16 @@ const Display = () => {
           }}
         >
           <option value="0">(Select)</option>
+          <option value="D">Choose Date</option>
           <option value="1">24 hours</option>
           <option value="7">7 days</option>
           <option value="30">30 days</option>
           <option value="180">180 days</option>
         </Form.Select>
       </Form>
-      <br />
+
+      { intervalDays === 'D' ? showCalendar() : <br />}
+
       <Button
         variant="outline-primary"
         onClick={() => {
@@ -128,9 +143,11 @@ const Display = () => {
             })
           );
         }}
+        disabled={intervalDays === '0'}
       >
         Submit
       </Button>
+      
       <p>
         <em>{delayDisplay}</em>
       </p>
