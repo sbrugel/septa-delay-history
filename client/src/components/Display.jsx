@@ -72,6 +72,10 @@ const Display = () => {
 
         let intervalText = "";
 
+        let maxDelayAmt = -1;
+        let minDelayAmt = -1;
+        let maxDelay, minDelay;
+
         switch (data.intervalDays) {
           case "1":
             intervalText = "24 hours";
@@ -94,16 +98,34 @@ const Display = () => {
             resultsFound = true;
             delaySum += delay.amount;
             count++;
+
+            if (maxDelayAmt === -1 || (delay.amount > maxDelayAmt)) {
+              maxDelayAmt = delay.amount;
+              maxDelay = delay;
+            }
+            if (minDelayAmt === -1 || (delay.amount < minDelayAmt)) {
+              minDelayAmt = delay.amount;
+              minDelay = delay;
+            }
           }
         }
 
-        setDelayDisplay(
-          resultsFound
-            ? `Train ${train.service} had an average delay of ${Math.round(
-                delaySum / count
-              )} minutes over the past ${intervalText}.`
-            : `No data was found (no data over selected interval).`
-        );
+        if (!resultsFound) {
+          setDelayDisplay(
+            <div>
+              <p>No data was found (no data over selected interval).</p>
+            </div>
+          )
+        } else {
+          setDelayDisplay(
+            <div>
+              <p>Train {train.service} had an average delay of {Math.round(
+                delaySum / count)} minutes over the past {intervalText}.</p>
+              <p>Highest delay attained on {maxDelay.date}: {maxDelay.amount} minutes at {maxDelay.time}</p>
+              <p>Smallest delay attained on {minDelay.date}: {minDelay.amount} minutes at {minDelay.time}</p>
+            </div>
+          )
+        }
       }
     }
 
@@ -132,11 +154,24 @@ const Display = () => {
         let delaySum = 0;
         let count = 0;
 
+        let maxDelayAmt = -1;
+        let minDelayAmt = -1;
+        let maxDelay, minDelay;
+
         for (let delay of train.delays) {
           if (new Date(delay.datestring).toLocaleDateString("en-US") === date) {
             resultsFound = true;
             delaySum += delay.amount;
             count++;
+
+            if (maxDelayAmt === -1 || (delay.amount > maxDelayAmt)) {
+              maxDelayAmt = delay.amount;
+              maxDelay = delay;
+            }
+            if (minDelayAmt === -1 || (delay.amount < minDelayAmt)) {
+              minDelayAmt = delay.amount;
+              minDelay = delay;
+            }
           } else {
             if (resultsFound) {
               break;
@@ -144,18 +179,26 @@ const Display = () => {
           }
         }
 
-        setDelayDisplay(
-          resultsFound
-            ? `Train ${train.service} had an average delay of ${Math.round(
-                delaySum / count
-              )} minutes on ${date}.`
-            : `No data was found (no data for selected day).`
-        );
+        if (!resultsFound) {
+          setDelayDisplay(
+            <div>
+              <p>No data was found (no data for selected day).</p>
+            </div>
+          )
+        } else {
+          setDelayDisplay(
+            <div>
+              <p>Train {train.service} had an average delay of {Math.round(
+                delaySum / count)} minutes on {date}.</p>
+              <p>Highest delay: {maxDelay.amount} minutes at {maxDelay.time}</p>
+              <p>Smallest delay: {minDelay.amount} minutes at {minDelay.time}</p>
+            </div>
+          )
+        }
       }
     }
 
     if (data.intervalDays === 'D') {
-      console.log('h');
       getTrainOnDay(data.date);
     } else {
       const d = new Date();
@@ -179,6 +222,7 @@ const Display = () => {
           onChange={(value) => {
             setDate(value.toLocaleDateString("en-US"));
           }}
+          maxDate={new Date()}
         />
       </div>
     );
@@ -229,14 +273,12 @@ const Display = () => {
             })
           );
         }}
-        disabled={intervalDays === "0"}
+        disabled={intervalDays === "0" || !intervalDays || !service}
       >
         Submit
       </Button>
-
-      <p>
-        <em>{delayDisplay}</em>
-      </p>
+        <br />
+      {delayDisplay}
     </div>
   );
 };
