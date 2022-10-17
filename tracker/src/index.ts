@@ -19,6 +19,10 @@ async function main() {
     fetchDelays(mongo);
 }
 
+/**
+ * Scrapes the SEPTA API for delay data (using Axios). For each train found, if the train is in the database, the entry is modified, adding in the newly-found delay. Otherwise, a new entry is created.
+ * @param mongo The mongo client (used to push/find entries in database)
+ */
 async function fetchDelays(mongo: Db) {
     await axios.get("http://www3.septa.org/hackathon/TrainView/")
     .then(async (res) => {
