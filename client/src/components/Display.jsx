@@ -124,6 +124,10 @@ const Display = () => {
       }
 
       let medianDelay = 0;
+      train.delays.sort((a, b) => {
+        return a.amount - b.amount;
+      });
+      
       if (train.delays.length % 2 !== 0 && train.delays.length !== 1) {
         medianDelay =
           (train.delays[Math.floor(train.delays.length / 2)].amount +
@@ -159,7 +163,7 @@ const Display = () => {
               Highest delay: {maxDelay.amount} minutes at {maxDelay.time} on {maxDelay.date}
             </p>
             <p>
-              Smallest delay: {minDelay.amount} minutes at {minDelay.time} on {maxDelay.date}
+              Smallest delay: {minDelay.amount} minutes at {minDelay.time} on {minDelay.date}
             </p>
           </div>
         );
