@@ -4,10 +4,33 @@ import { useSelector, useDispatch } from "react-redux";
 import { Form, Button } from "react-bootstrap";
 import { updateData } from "../store/inputSlice";
 
+import BarChart from 'react-bar-chart';
+
 import { Calendar } from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
 const Display = () => {
+  const data2 = [
+    {text: '1', value: 500}, 
+    {text: '2', value: 300},
+    {text: '3', value: 500}, 
+    {text: '4', value: 300},
+    {text: '5', value: 500}, 
+    {text: '6', value: 300},
+    {text: '7', value: 500}, 
+    {text: '8', value: 300},
+    {text: '9', value: 500}, 
+    {text: '10', value: 300},
+    {text: '11', value: 500}, 
+    {text: '20', value: 300},
+    {text: '13', value: 500}, 
+    {text: '24', value: 300},
+    {text: '15', value: 500}, 
+    {text: '26', value: 300},
+  ];
+   
+  const margin = {top: 20, right: 20, bottom: 30, left: 40};
+
   // trains from database
   const [trains, setTrains] = useState([]);
 
@@ -249,6 +272,13 @@ const Display = () => {
       </Button>
       <br />
       {delayDisplay}
+      <BarChart  
+          xlabel='Delay (minutes)'
+          ylabel='Occurences'
+          width={500}
+          height={200}
+          margin={margin}
+          data={data2}/>
     </div>
   );
 };
