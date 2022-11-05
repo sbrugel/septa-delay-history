@@ -233,7 +233,7 @@ const Display = () => {
   const showChart = () => {
     return (
       <BarChart 
-          width={1000}
+          width={(25*chartData.length > 1000 ? 1000 : 25*chartData.length)}
           height={200}
           margin={margin}
           data={chartData}/>
