@@ -4,6 +4,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { Form, Button } from "react-bootstrap";
 import { updateData } from "../store/inputSlice";
 
+import BarChart from 'react-bar-chart';
+
 import { Calendar } from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
@@ -22,6 +24,10 @@ const Display = () => {
   // temp store of user filled fields
   const dispatch = useDispatch();
   const data = useSelector((state) => state.input);
+
+  // data for chart
+  const [chartData, setChartData] = useState([]);
+  const margin = {top: 20, right: 20, bottom: 30, left: 40};
 
   // fetch trains from our DB
   useEffect(() => {
@@ -53,6 +59,8 @@ const Display = () => {
     async function getTrain(date, onlySpecified) {
       if (!data.service) return; // function executed on page load
 
+      chartData.length = 0; // clear original arr
+
       const response = await fetch(
         `http://localhost:5000/train/${data.service}/`
       );
@@ -68,6 +76,7 @@ const Display = () => {
         setDelayDisplay(`No data was found (no data for this train).`);
         return;
       }
+      const PUNCTUAL_THRESHOLD = 5;
       let resultsFound = false;
       let delaySum = 0;
       let punctualDelays = 0; // 5 or less minutes late
@@ -108,7 +117,15 @@ const Display = () => {
           delaySum += delay.amount;
           count++;
 
-          if (delay.amount <= 5) punctualDelays++;
+          // add in known delay data
+          if (chartData.some(e => e.text === delay.amount)) {
+            const delayIndex = chartData.findIndex(e => e.text === delay.amount);
+            chartData[delayIndex].value++;
+          } else {
+            chartData.push({ text: delay.amount, value: 1 });
+          }
+
+          if (delay.amount <= PUNCTUAL_THRESHOLD) punctualDelays++;
 
           if (maxDelayAmt === -1 || delay.amount >= maxDelayAmt) {
             maxDelayAmt = delay.amount;
@@ -128,6 +145,7 @@ const Display = () => {
         return a.amount - b.amount;
       });
       
+      
       if (train.delays.length % 2 !== 0 && train.delays.length !== 1) {
         medianDelay =
           (train.delays[Math.floor(train.delays.length / 2)].amount +
@@ -138,6 +156,19 @@ const Display = () => {
       } else {
         medianDelay = train.delays[0].amount;
       }
+
+      // add in missing gaps
+      for (let i = 0; i < maxDelayAmt; i++) {
+        if (!chartData.some(e => e.text === i)) {
+          chartData.push({ text: i, value: 0 });
+        }
+      }
+
+      // sort the delay data by amount
+      chartData.sort((a, b) => {
+        return a.text - b.text;
+      });
+      setChartData(chartData); // to force refresh of chart
 
       if (!resultsFound) {
         setDelayDisplay(
@@ -156,7 +187,7 @@ const Display = () => {
               minutes.
             </strong></p>
             <p>
-              This train's punctuality (5 or less minutes late) is{" "}
+              This train's punctuality ({PUNCTUAL_THRESHOLD} or less minutes late) is{" "}
               {Math.round((punctualDelays / count) * 100)}%
             </p>
             <p>
@@ -177,6 +208,7 @@ const Display = () => {
       d.setDate(d.getDate() - data.intervalDays);
       getTrain(d, false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.service, data.intervalDays, data.date]);
 
   const showCalendar = () => {
@@ -197,6 +229,16 @@ const Display = () => {
       </div>
     );
   };
+
+  const showChart = () => {
+    return (
+      <BarChart 
+          width={(25*chartData.length > 1000 ? 1000 : 25*chartData.length)}
+          height={200}
+          margin={margin}
+          data={chartData}/>
+    )
+  }
 
   return (
     <div>
@@ -249,6 +291,7 @@ const Display = () => {
       </Button>
       <br />
       {delayDisplay}
+      {data.service ? showChart() : ""}
     </div>
   );
 };
