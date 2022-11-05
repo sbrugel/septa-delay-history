@@ -12,8 +12,9 @@ This is my first delve into a full-stack project. It uses Mongo, Express, React+
 - Display of punctuality, aka the percentage of the time the train is 5 or less minutes late.
 - Intervals of past 24 hours / 7 days / 30 days / 180 days.
 - Ability to retrieve the information above for a train from a specific date (rather than a range of dates).
+- Display of a graph showing the frequency of delays within that time period.
 
-![img](https://i.imgur.com/knhO30K.jpeg)
+![img](https://i.imgur.com/5rXvW2d.png)
 
 ## Folders
 
